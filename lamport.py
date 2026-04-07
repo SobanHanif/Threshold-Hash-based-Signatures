@@ -1,8 +1,8 @@
 import hashlib
 import secrets
 
+# 256 pairs of (0-bit, 1-bit) secrets; public key is SHA-256 of each secret.
 def generate_keys():
-    """256 pairs of (0-bit, 1-bit) secrets; public key is SHA-256 of each secret."""
     secret_key = []
     public_key = []
     for _ in range(256):
