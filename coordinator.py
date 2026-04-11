@@ -1,3 +1,6 @@
+import threshold
+import lamport
+
 class Coordinator:
     # The coordinator manages the threshold signing workflow.
     # It coordinates the parties but does not store the full secret key.
@@ -25,16 +28,28 @@ class Coordinator:
         self.parties.append(Party)
 
     def collect_sign_shares(self, message):
-        # To Store signature share returned by each of the parties
+        # Store the signature shares in an array , initially emptyu 
         signature_shares = []
 
-        # Send the same message to every registered party.
+        # Send the same message to every registered party
         for p in self.parties:
-            # Each party signs using its own secret-key share.
             sig_share = p.sign(message)
 
-            # Add that party's signature share to the list.
             signature_shares.append(sig_share)
 
-        # Return all collected signature shares to the coordinator.
         return signature_shares
+    
+    # Module for comboning all the shared-signaturesm to be used for final signature
+    def comb_sig_shares(self, sig_shares):
+        return threshold.combine_signatures(sig_shares)
+    
+    def sign (self, message):
+            # Collect all signatures ion the sig_sahre array & combine them to a final signature
+            sig_shares = self.collect_sign_shares(message)
+            final_signature = self.comb_sig_shares(sig_shares)
+            return final_signature
+    
+
+    # check the final combined signature is valid using our pUblic key 
+    def verify_Signature(self, message, signature):
+        return lamport.verify(message, signature, self.public_key)
