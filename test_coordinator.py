@@ -1,7 +1,10 @@
 import unittest
+import lamport, threshold
+
 
 from coordinator import Coordinator
 
+N_Parties = 4
 
 class TestCoordinator(unittest.TestCase):
     # Test: adding an empty party should raise ValueError.
@@ -34,5 +37,27 @@ class TestCoordinator(unittest.TestCase):
         crd.add_party("p2")
         # will be valid when length of added parties is 2
         self.assertEqual(len(crd.parties), 2) 
+
+
+
+class TestCmbSigShares(unittest.TestCase):
+
+    def setUp(self):
+        self.sk, self.pk = lamport.generate_keys()
+        self.shares = threshold.split_secret_key(self.sk, 4) 
+        self.coordinator = Coordinator(self.pk) 
+
+        self.message = "hello"
+
+    #Test: Valid if Combined Signature has 256 length
+    def is_valid_comb_sign_256_chars(self):
+
+        shares = [lamport.sign(self.message, s) 
+                  for s in self.shares]
+        
+        comb = self.coordinator.comb_sig_shares(shares)
+
+        self.assertEqual(len(comb), 256)
+
 if __name__ == "__main__":
     unittest.main()
