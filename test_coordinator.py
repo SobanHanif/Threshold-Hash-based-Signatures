@@ -49,6 +49,20 @@ class TestCmbSigShares(unittest.TestCase):
 
         self.message = "hello"
 
+    def test_combined_match_valid(self):
+        
+        # Test: combining shares to give the same signature as signing with key
+        sigShares = []
+
+        for s in self.shares:
+            sig = lamport.sign(self.message, s)
+            sigShares.append(sig)
+        
+        #both must match
+        cmb = self.coordinator.comb_sig_shares(sigShares)
+
+        self.assertEqual(cmb, lamport.sign(self.message, self.sk))
+
     #Test: Valid if Combined Signature has 256 length
     def test_is_valid_comb_sign_256_chars(self):
 
@@ -66,7 +80,7 @@ class TestVerification(unittest.TestCase):
         self.sk, self.pk = lamport.generate_keys()
         self.shares = threshold.split_secret_key(self.sk, NParties)
         self.coordinator = Coordinator(self.pk)
-        
+
         self.message = "hello123 "
 
 
