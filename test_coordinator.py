@@ -4,7 +4,7 @@ import lamport, threshold
 
 from coordinator import Coordinator
 
-N_Parties = 4
+NParties = 4
 
 class TestCoordinator(unittest.TestCase):
     # Test: adding an empty party should raise ValueError.
@@ -44,13 +44,13 @@ class TestCmbSigShares(unittest.TestCase):
 
     def setUp(self):
         self.sk, self.pk = lamport.generate_keys()
-        self.shares = threshold.split_secret_key(self.sk, 4) 
+        self.shares = threshold.split_secret_key(self.sk, NParties) 
         self.coordinator = Coordinator(self.pk) 
 
         self.message = "hello"
 
     #Test: Valid if Combined Signature has 256 length
-    def is_valid_comb_sign_256_chars(self):
+    def test_is_valid_comb_sign_256_chars(self):
 
         shares = [lamport.sign(self.message, s) 
                   for s in self.shares]
@@ -58,6 +58,31 @@ class TestCmbSigShares(unittest.TestCase):
         comb = self.coordinator.comb_sig_shares(shares)
 
         self.assertEqual(len(comb), 256)
+        
+class TestVerification(unittest.TestCase):
+    # Setup: generating lamport key pair, split into SK into Nparties Share
+    # creating coordinator with PK and setting a test messagje
+    def setUp(self):
+        self.sk, self.pk = lamport.generate_keys()
+        self.shares = threshold.split_secret_key(self.sk, NParties)
+        self.coordinator = Coordinator(self.pk)
+        
+        self.message = "hello123 "
 
+
+    #Test: signing each of the secret share and independing and combing the signature
+    #      shares via XOR producing a valid signature, that passes verification
+    def test_is_valid_sig(self):
+        sig_shares = []
+
+        for s in self.shares:
+            sig = lamport.sign(self.message, s)
+            sig_shares.append(sig)
+
+        cmb = self.coordinator.comb_sig_shares(sig_shares) 
+        res = self.coordinator.verify_Signature(self.message, cmb)
+
+        self.assertTrue(res) 
+ 
 if __name__ == "__main__":
     unittest.main()
