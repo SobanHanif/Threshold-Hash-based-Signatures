@@ -2,7 +2,7 @@ from lamport import sign
 import secrets
 class Party:
 
-    def __init__ (self, share):
+    def __init__ (self):
         """Initialises the party class. Each party holds their randomised uint32 share."""
         self._share = secrets.token_bytes(32)
 

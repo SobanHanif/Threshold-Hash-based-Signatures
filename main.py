@@ -12,14 +12,17 @@ def main():
     start_time = time.time()
     sk, pk = generate_keys()
     print(f"Key gen: {time.time() - start_time:.4f} seconds")
-
-    n_parties = 3
+    
+    n_parties = int(input("Number of parties: "))
     start_time = time.time()
-    sk_shares = split_secret_key(sk, n_parties)
+
+    # sk_shares = split_secret_key(sk, n_parties)
 
     # Create Party-object for every shares
-    for s in sk_shares:
-        parties.append(Party(s))
+    parties = [Party() for _ in range(n_parties)]
+    
+    # depreciated logic: for s in sk_shares:
+    #    parties.append(Party(s))
 
     # Then Register each of the party in coordinator
     crd = Coordinator(pk)
