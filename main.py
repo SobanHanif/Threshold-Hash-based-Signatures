@@ -1,53 +1,65 @@
 #!/usr/bin/env python3
 
 import time
-from lamport import generate_keys
-from threshold import split_secret_key
-from party import Party
-from coordinator import Coordinator
+
+from ots import WinternitzOTS
+from threshold import kofn_keygen, kofn_sign, kofn_verify
 
 
 def main():
-    parties = []
-    start_time = time.time()
-    sk, pk = generate_keys()
-    print(f"Key gen: {time.time() - start_time:.4f} seconds")
-    
-    n_parties = int(input("Number of parties: "))
-    start_time = time.time()
+    ots = WinternitzOTS(w=16)
+    n = 5
+    k = 3
 
-    # sk_shares = split_secret_key(sk, n_parties)
-
-    # Create Party-object for every shares
-    parties = [Party() for _ in range(n_parties)]
-    
-    # depreciated logic: for s in sk_shares:
-    #    parties.append(Party(s))
-
-    # Then Register each of the party in coordinator
-    crd = Coordinator(pk)
-
-    for p in parties:
-        crd.add_party(p)
-    
-    print(f"Share splitting: {time.time() - start_time:.4f} seconds")
+    start = time.time()
+    state = kofn_keygen(n, k, ots)
+    print(
+        f"k-of-n keygen (n={n}, k={k}, subsets={len(state['subsets'])}): "
+        f"{time.time() - start:.4f}s"
+    )
 
     msg = input("Message to sign: ").strip()
     if not msg:
-        msg = "hello world I am in pain"
+        msg = "hello world I am in pain xdddddddddd"
 
-    start_time = time.time()
-    finalSign = crd.sign(msg)
+    selected = [0, 2, 4]
+    start = time.time()
+    sig = kofn_sign(selected, msg, state)
+    print(f"Signing with parties {selected}: {time.time() - start:.4f}s")
 
-    #sig_shares = [sign(msg, share) for share in sk_shares]
-    print(f"Signing + Combining: {time.time() - start_time:.4f} seconds")
-    
+    start = time.time()
+    ok = kofn_verify(msg, sig, state["root"], n, k, ots)
+    print(f"Verification: {time.time() - start:.4f}s")
+    print("verify(signed message):", ok)
 
-    start_time = time.time()
-    # Verify Final Signature against the Pk
-    res = crd.verify_signature(msg, finalSign)
-    
-    print(f"Verification: {time.time() - start_time:.4f} seconds")
+    # tampered message must fail
+    print(
+        "verify(tampered message):",
+        kofn_verify(msg + "!", sig, state["root"], n, k, ots),
+    )
+
+    # a different k-subset still works
+    other = [1, 2, 3]
+    sig2 = kofn_sign(other, msg, state)
+    print(
+        f"verify(other subset {other}):",
+        kofn_verify(msg, sig2, state["root"], n, k, ots),
+    )
+
+    # too few parties must fail
+    try:
+        kofn_sign([0, 1], msg, state)
+        print("error: too-few-parties sign should have raised")
+    except ValueError as e:
+        print(f"too few parties -> rejected: {e}")
+
+    # signing twice with the same subset must fail
+    try:
+        kofn_sign(selected, msg, state)
+        print("error: reuse should have been rejected")
+    except RuntimeError as e:
+        print(f"reuse rejected: {e}")
+
 
     print(f"Valid: {res}")
 

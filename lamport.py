@@ -9,7 +9,6 @@ def _to_bytes(message):
     raise TypeError("message must be str or bytes")
 
 def generate_keys():
-    """256 pairs of (0-bit, 1-bit) secrets; public key is SHA-256 of each secret."""
     secret_key = []
     public_key = []
     for _ in range(256):
