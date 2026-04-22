@@ -29,6 +29,11 @@ class SigningRound:
 
         sig_shares = []
 
+        initiator = self.parties[self.initiator_id]
+        if not initiator.available:
+            self.declined.append(self.initiator_id)
+            return None, False
+
         for pid, party in self.parties.items():
             if pid == self.initiator_id:
                 continue
@@ -39,7 +44,6 @@ class SigningRound:
             else:
                 self.declined.append(pid)
 
-        initiator = self.parties[self.initiator_id]
         initiator_share = initiator.sign_share(self.message)
         self.participants.append(self.initiator_id)
         sig_shares.append(initiator_share)
