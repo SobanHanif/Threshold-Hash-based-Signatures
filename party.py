@@ -1,4 +1,3 @@
-import secrets
 import lamport
 
 
@@ -15,7 +14,7 @@ class Party:
             raise ValueError("Party has no secret-key share assigned")
         return lamport.sign(message, self.sk_share)
 
-    def receive_sign_request(self, message, requester_id):
+    def receive_sign_request(self, message):
         if not self.available:
             return False, None
         return True, self.sign_share(message)

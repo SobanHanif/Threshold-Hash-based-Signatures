@@ -46,7 +46,7 @@ class Coordinator:
         sig_shares = []
 
         for p in self.parties:
-            accepted, sig_share = p.receive_sign_request(message, None)
+            accepted, sig_share = p.receive_sign_request(message)
             if not accepted:
                 raise ValueError(f"Party {p.party_id} is unavailable")
             sig_shares.append(sig_share)
@@ -80,3 +80,6 @@ class Coordinator:
     def sign(self, message):
         sig_shares = self.request_signature_shares(message)
         return self.comb_sig_shares(sig_shares)
+
+    def verify_signature(self, message, signature):
+        return lamport.verify(message, signature, self.public_key)

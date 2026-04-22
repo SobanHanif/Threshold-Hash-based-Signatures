@@ -32,9 +32,7 @@ class SigningRound:
         for pid, party in self.parties.items():
             if pid == self.initiator_id:
                 continue
-            accepted, share = party.receive_sign_request(
-                self.message, self.initiator_id
-            )
+            accepted, share = party.receive_sign_request(self.message)
             if accepted:
                 self.participants.append(pid)
                 sig_shares.append(share)

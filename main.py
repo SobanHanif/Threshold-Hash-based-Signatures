@@ -45,7 +45,7 @@ def main():
 
     start_time = time.time()
     # Verify Final Signature against the Pk
-    res = crd.verify_Signature(msg, finalSign)
+    res = crd.verify_signature(msg, finalSign)
     
     print(f"Verification: {time.time() - start_time:.4f} seconds")
 
