@@ -18,9 +18,9 @@ class BatchHandler:
     signature_fn: function(message, key_id) -> existing signature function (agnostic of lamport/winternitz)
     pks: list of all public keys, one per outer leaf
     """
-    # i am incredibly lazy (adjust later to do duping)
-    if batch_size & (batch_size - 1) != 0:
-      raise ValueError("batch_size must be a power of 2")
+    # merkle.py should alr handle duping
+    # if batch_size & (batch_size - 1) != 0:
+    #   raise ValueError("batch_size must be a power of 2")
     
     # firstly build our merkle tree for PKs
     outer_leaves = [merkle.leaf_hash(pk) for pk in pks]
@@ -82,6 +82,7 @@ class BatchHandler:
     })
     
     self.current_key_id += 1
+    
     # kill buffer
     self.buffer = []
   def get_proof(self, batch_index: int, message_index: int) -> dict:
