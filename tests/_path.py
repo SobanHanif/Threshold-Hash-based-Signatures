@@ -1,10 +1,12 @@
-"""Adds the project root to sys.path so `python -m unittest discover tests`
-works from inside the Threshold-Hash-based-Signatures directory regardless
-of how the test runner was invoked."""
+"""Adds the source folders to sys.path so unittest discovery keeps working."""
 
 import os
 import sys
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
+_MINIMAL = os.path.join(_ROOT, "src", "minimal")
+_EXTENSIONS = os.path.join(_ROOT, "src", "extensions")
+
+for path in (_ROOT, _MINIMAL, _EXTENSIONS):
+    if path not in sys.path:
+        sys.path.insert(0, path)

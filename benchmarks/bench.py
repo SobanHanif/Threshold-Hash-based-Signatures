@@ -2,11 +2,20 @@
 """comparative benchmark: lamport vs winternitz across (n, k) and w
 """
 
+import os
+import sys
 import time
 from itertools import combinations
 
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_MINIMAL = os.path.join(_ROOT, "src", "minimal")
+_EXTENSIONS = os.path.join(_ROOT, "src", "extensions")
+for path in (_MINIMAL, _EXTENSIONS):
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
+from kofn import kofn_keygen, kofn_sign, kofn_verify
 from ots import LamportOTS, WinternitzOTS
-from threshold import kofn_keygen, kofn_sign, kofn_verify
 
 
 def _sig_size_bytes(sig):

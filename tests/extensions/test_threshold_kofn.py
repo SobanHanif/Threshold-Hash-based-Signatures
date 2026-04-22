@@ -1,8 +1,8 @@
 import unittest
 
-from . import _path
+from tests import _path
+from kofn import kofn_keygen, kofn_sign, kofn_verify
 from ots import LamportOTS, WinternitzOTS
-from threshold import kofn_keygen, kofn_sign, kofn_verify
 
 
 SCHEMES = [

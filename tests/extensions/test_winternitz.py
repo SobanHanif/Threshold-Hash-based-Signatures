@@ -1,6 +1,6 @@
 import unittest
 
-from . import _path  # noqa: F401
+from tests import _path
 import winternitz
 
 

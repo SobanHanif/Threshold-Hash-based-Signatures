@@ -1,60 +1,36 @@
 import hashlib
 import math
-import secrets
 from itertools import combinations
 
-
-def xor_bytes(b1, b2):
-    res = bytearray()
-    for i in range(len(b1)):
-        res.append(b1[i] ^ b2[i])
-    return res
-
-
-# split an ots secret key into n XOR shares
-def split_secret_key(secret_key, n, element_size=32):
-    l = len(secret_key)
-    shares = []
-    for _ in range(n - 1):
-        share = [secrets.token_bytes(element_size) for _ in range(l)]
-        shares.append(share)
-
-    last_share = []
-    for i in range(l):
-        acc = secret_key[i]
-        for j in range(n - 1):
-            acc = xor_bytes(acc, shares[j][i])
-        last_share.append(bytes(acc))
-    shares.append(last_share)
-
-    return shares
+from threshold import split_secret_key, xor_bytes
 
 
 # combines n signature shares into a single OTS signature
 # 1. XOR all shares by element -> flattened SK
 # 2. give ots class which unflattens if needed and signs
-def combine_signatures(sig_shares, message, ots):
+def ots_combine_signature(sig_shares, message, ots):
+    if not sig_shares:
+        raise ValueError("sig_shares cannot be empty")
+
     n = len(sig_shares)
-    l = len(sig_shares[0])
+    sig_len = len(sig_shares[0])
+
+    for share in sig_shares:
+        if len(share) != sig_len:
+            raise ValueError("All signature shares must have the same length")
 
     reconstructed_flat = []
-    for i in range(l):
+    for i in range(sig_len):
         acc = sig_shares[0][i]
         for j in range(1, n):
             acc = xor_bytes(acc, sig_shares[j][i])
-        reconstructed_flat.append(bytes(acc))
+        reconstructed_flat.append(acc)
 
     return ots.sign(message, ots.unflatten_sk(reconstructed_flat))
 
 
-# extension 1: k-of-n via k-of-k subtrees
-# for every k-subset of the n parties we run the k-of-k construction
-# (new generated OTS keypair, SK split into k XOR shares). 
-# root has combined public key
-
-
+# binary merkle tree with odd nodes duplicating the last sibling.
 def _build_merkle(leaves):
-    # binary merkle tree with odd nodes duplicating the last sibling.
     levels = [list(leaves)]
     while len(levels[-1]) > 1:
         prev = levels[-1]
@@ -158,7 +134,7 @@ def kofn_sign(selected_parties, message, state):
             raise RuntimeError(f"party {p} is missing its share for subset {s_idx}")
         sig_shares.append(share)
 
-    ots_sig = combine_signatures(sig_shares, message, ots)
+    ots_sig = ots_combine_signature(sig_shares, message, ots)
     auth_path = _merkle_auth_path(state["tree"], s_idx)
     state["used_subsets"].add(s_idx)
 
