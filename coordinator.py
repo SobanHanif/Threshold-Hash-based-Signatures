@@ -1,56 +1,82 @@
-import threshold
 import lamport
-import party
-
-import copy
+from party import Party
+from threshold import xor_bytes
 
 # In literature, this is the 'aggregator'
 class Coordinator:
     # The coordinator manages the threshold signing workflow.
     # It coordinates the parties but does not store the full secret key.
     
-    def __init__(self, public_key, parties=None, secret_array=None):
+    def __init__(self, public_key, parties=None):
         """
         Constructor for coordinator
-        Stores the other parties, and uses the secret array to generate its own shares
-        If the share generation is to be moved outside of coordinator (i.e. accessor concerns),
-        all logic is in construct_coordinator_share
+        Stores the public key and the parties involved in signing
         """
+        if public_key is None:
+            raise ValueError("public_key cannot be None")
+
         # PK used to verify the final signature.
         self.public_key = public_key
 
         # Parties - participants which hold each secret key share.
-        self.parties = list(parties or [])
+        self.parties = []
 
-        # Share
-        self.share = self.construct_coordinator_share(secret_array)
+        if parties is not None:
+            for p in parties:
+                self.add_party(p)
 
 
     def add_party(self, p):
         # raise error if Party is NONE
         if p is None:
             raise ValueError("Party can't be None")
-
-        # raise error if party is empty
-        if p == "":
-            raise ValueError("Party can't be empty")
+        if not isinstance(p, Party):
+            raise TypeError("Expected a Party instance")
 
         # raise error if party is already added
-        if p in self.parties:
+        if any(existing.party_id == p.party_id for existing in self.parties):
             raise ValueError("Party is already added")
         
         self.parties.append(p)
-    # coordinator is the final nth party, but as of now it requires you to construct the share
-    def construct_coordinator_share(self, secret_array):
-        # A sign share is simply, for a normal party, the randomised message they store
-        # secrets is a 256 length array of pairs
-        temp_arr = copy.deepcopy(secret_array)
-        
-        prefix_xor = 0
+
+    def request_signature_shares(self, message):
+        """
+        Ask all available parties for their signature shares.
+        """
+        sig_shares = []
+
         for p in self.parties:
-            prefix_xor ^= p.share
+            accepted, sig_share = p.receive_sign_request(message, None)
+            if not accepted:
+                raise ValueError(f"Party {p.party_id} is unavailable")
+            sig_shares.append(sig_share)
 
-        # The coordinator share: r_n= secret ^ r1 ^ r2 ^ ... ^ r_n - 1 
-        signature_shares = [[pair[0] ^ prefix_xor, pair[1] ^ prefix_xor] for pair in temp_arr]
+        return sig_shares
 
-        return signature_shares
+    def comb_sig_shares(self, sig_shares):
+        """
+        Combine signature shares elementwise via XOR.
+        """
+        if not sig_shares:
+            raise ValueError("sig_shares cannot be empty")
+
+        sig_len = len(sig_shares[0])
+        if sig_len == 0:
+            raise ValueError("signature shares cannot be empty")
+
+        for share in sig_shares:
+            if len(share) != sig_len:
+                raise ValueError("All signature shares must have the same length")
+
+        combined_signature = []
+        for i in range(sig_len):
+            combined_value = sig_shares[0][i]
+            for j in range(1, len(sig_shares)):
+                combined_value = xor_bytes(combined_value, sig_shares[j][i])
+            combined_signature.append(combined_value)
+
+        return combined_signature
+
+    def sign(self, message):
+        sig_shares = self.request_signature_shares(message)
+        return self.comb_sig_shares(sig_shares)
