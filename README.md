@@ -28,12 +28,7 @@
 - error handling for less than k parties/ tampered message 
 
 ## Running
-- `src/minimal/main.py` runs the simpler baseline demos:
-  - standard coordinator/party signing with Lamport shares
-  - merkle-tree-backed Lamport signing
-- `src/extensions/ext1_ext5.py` runs the extension 1/5 Winternitz demo
-- baseline code now lives under `src/minimal/`
-- extension code now lives under `src/extensions/`
-- tests now live under `tests/` and can be run with `python3 -m unittest discover tests`
+- main.py for simple usage case
+- bench.py for benchmark between wots and lamport scheme
 
 
