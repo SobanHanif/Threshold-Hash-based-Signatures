@@ -27,8 +27,7 @@
 - error handling for less than k parties/ tampered message 
 
 ## Running
-- main.py
-- example uses n=5 k=3 w=16
-- signs with parties [0, 2, 4], prints timings (for benchmarking) then tries another subset + the cases where it should fail
+- main.py for simple usage case
+- bench.py for benchmark between wots and lamport scheme
 
 
