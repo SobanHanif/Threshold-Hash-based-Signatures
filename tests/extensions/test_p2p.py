@@ -61,6 +61,15 @@ class TestP2PNetwork(unittest.TestCase):
         self.assertTrue(ok, "Party 2 should be able to initiate")
         self.assertTrue(lamport.verify(message, sig, pk))
 
+    # Test initiator being unavailable should fail the round immediately
+    def test_unavailable_initiator_fails(self):
+        _, _, parties, network = setup_network()
+        parties[0].set_availability(False)
+
+        sig, ok = network.initiate_signing(0, "hello p2p")
+        self.assertFalse(ok, "Signing should fail if the initiator is unavailable")
+        self.assertIsNone(sig, "No signature should be returned")
+
 
 if __name__ == "__main__":
     unittest.main()
