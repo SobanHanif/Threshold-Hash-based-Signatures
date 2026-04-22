@@ -8,7 +8,7 @@ class Party:
         self.sk_share = sk_share
         self.available = True
         # Kept for compatibility with coordinator.py
-        self.share = secrets.token_bytes(32)
+        # self.share = secrets.token_bytes(32)
 
     def sign_share(self, message):
         if self.sk_share is None:
