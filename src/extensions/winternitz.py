@@ -2,12 +2,14 @@ import hashlib
 import secrets
 import math
 
+
 # Hash a value n times with SHA-256
 def hash_n_times(value, n):
     hashed = value
     for _ in range(n):
         hashed = hashlib.sha256(hashed).digest()
     return hashed
+
 
 # Turn the message hash into base-w digits assuming w is a power of 2
 def hash_to_base_w_digits(msg_hash, w):
@@ -28,6 +30,7 @@ def hash_to_base_w_digits(msg_hash, w):
 
     return digits
 
+
 # Write an integer as base-w using exactly 'length' digits
 def int_to_base_w(x, w, length):
     digits = [0] * length
@@ -36,6 +39,7 @@ def int_to_base_w(x, w, length):
         x //= w
     return digits
 
+
 # Work out how many chains we need
 def get_lengths(w, hash_bits=256):
     bits_per_digit = math.log2(w)
@@ -43,6 +47,7 @@ def get_lengths(w, hash_bits=256):
     l2 = math.floor(math.log(l1 * (w - 1), w)) + 1
     l = l1 + l2
     return l1, l2, l
+
 
 # Hash message, convert to digits, then add checksum digits
 def message_to_digits(message, w):
@@ -67,6 +72,7 @@ def message_to_digits(message, w):
 
     return all_digits
 
+
 # Private key is random starting points
 # Public key is end of each hash chain
 def generate_keys(w):
@@ -88,6 +94,7 @@ def generate_keys(w):
 
     return secret_key, public_key
 
+
 # Sign by revealing each chain at the needed position
 def sign(message, secret_key, w):
     digits = message_to_digits(message, w)
@@ -102,6 +109,7 @@ def sign(message, secret_key, w):
         signature.append(sig_part)
 
     return signature
+
 
 # Verify by hashing forward to the end of the chain
 def verify(message, signature, public_key, w):
@@ -123,6 +131,7 @@ def verify(message, signature, public_key, w):
 
     return True
 
+
 def main():
     w = 16
     sk, pk = generate_keys(w)
@@ -142,6 +151,7 @@ def main():
 
     other = msg + "!"
     print("verify(tampered message):", verify(other, sig, pk, w))
+
 
 if __name__ == "__main__":
     main()

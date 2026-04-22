@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 
+import os
+import sys
 import time
 
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_MINIMAL = os.path.join(os.path.dirname(_HERE), "minimal")
+if _MINIMAL not in sys.path:
+    sys.path.insert(0, _MINIMAL)
+
+from kofn import kofn_keygen, kofn_sign, kofn_verify
 from ots import WinternitzOTS
-from threshold import kofn_keygen, kofn_sign, kofn_verify
 
 
 def main():
@@ -32,13 +39,11 @@ def main():
     print(f"Verification: {time.time() - start:.4f}s")
     print("verify(signed message):", ok)
 
-    # tampered message must fail
     print(
         "verify(tampered message):",
         kofn_verify(msg + "!", sig, state["root"], n, k, ots),
     )
 
-    # a different k-subset still works
     other = [1, 2, 3]
     sig2 = kofn_sign(other, msg, state)
     print(
@@ -46,22 +51,18 @@ def main():
         kofn_verify(msg, sig2, state["root"], n, k, ots),
     )
 
-    # too few parties must fail
     try:
         kofn_sign([0, 1], msg, state)
         print("error: too-few-parties sign should have raised")
     except ValueError as e:
         print(f"too few parties -> rejected: {e}")
 
-    # signing twice with the same subset must fail
     try:
         kofn_sign(selected, msg, state)
         print("error: reuse should have been rejected")
     except RuntimeError as e:
         print(f"reuse rejected: {e}")
 
-
-    print(f"Valid: {res}")
 
 if __name__ == "__main__":
     main()

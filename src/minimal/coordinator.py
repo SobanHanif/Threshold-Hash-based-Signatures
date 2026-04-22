@@ -2,11 +2,12 @@ import lamport
 from party import Party
 from threshold import xor_bytes
 
+
 # In literature, this is the 'aggregator'
 class Coordinator:
     # The coordinator manages the threshold signing workflow.
     # It coordinates the parties but does not store the full secret key.
-    
+
     def __init__(self, public_key, parties=None):
         """
         Constructor for coordinator
@@ -25,7 +26,6 @@ class Coordinator:
             for p in parties:
                 self.add_party(p)
 
-
     def add_party(self, p):
         # raise error if Party is NONE
         if p is None:
@@ -36,7 +36,7 @@ class Coordinator:
         # raise error if party is already added
         if any(existing.party_id == p.party_id for existing in self.parties):
             raise ValueError("Party is already added")
-        
+
         self.parties.append(p)
 
     def request_signature_shares(self, message):

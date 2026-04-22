@@ -1,4 +1,6 @@
 import unittest
+
+from tests import _path
 import lamport
 import threshold
 
