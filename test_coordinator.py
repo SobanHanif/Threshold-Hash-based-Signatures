@@ -23,6 +23,13 @@ class TestCoordinator(unittest.TestCase):
         with self.assertRaises(ValueError):
             coordinator.add_party("p1")
 
+    #Test: test AddParty, raise ValueError when party is None
+    def test_none_add_party(self):
+        crd = Coordinator("public_key")
+        
+        with self.assertRaises(ValueError):
+            crd.add_party(None)
+
 
     # Test: Valid party added successfully 
     def test_addParty_scess(self):
@@ -97,6 +104,19 @@ class TestVerification(unittest.TestCase):
         res = self.coordinator.verify_Signature(self.message, cmb)
 
         self.assertTrue(res) 
- 
+
+    # Test: tampered Message with the original signature returns false
+    def test_tamp_message(self):
+        sig_shares = []
+
+        for s in self.shares:
+            sig = lamport.sign(self.message, s)
+            sig_shares.append(sig)
+
+        cmb = self.coordinator.comb_sig_shares(sig_shares)
+        res = self.coordinator.verify_Signature("tamp" + self.message, cmb )
+
+        self.assertFalse(res)
+
 if __name__ == "__main__":
     unittest.main()
