@@ -1,5 +1,5 @@
-import lamport
 from party import Party
+from lamport_ots import verify
 from threshold import xor_bytes
 
 
@@ -82,4 +82,4 @@ class Coordinator:
         return self.comb_sig_shares(sig_shares)
 
     def verify_signature(self, message, signature):
-        return lamport.verify(message, signature, self.public_key)
+        return verify(message, signature, self.public_key)

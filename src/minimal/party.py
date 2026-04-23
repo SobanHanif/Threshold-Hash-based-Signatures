@@ -1,4 +1,4 @@
-import lamport
+from lamport_ots import sign
 
 
 class Party:
@@ -12,7 +12,7 @@ class Party:
     def sign_share(self, message):
         if self.sk_share is None:
             raise ValueError("Party has no secret-key share assigned")
-        return lamport.sign(message, self.sk_share)
+        return sign(message, self.sk_share)
 
     def receive_sign_request(self, message):
         if not self.available:

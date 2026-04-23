@@ -6,11 +6,13 @@ import os
 import sys
 import time
 from itertools import combinations
+from tabulate import tabulate
 
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_MINIMAL = os.path.join(_ROOT, "src", "minimal")
-_EXTENSIONS = os.path.join(_ROOT, "src", "extensions")
-for path in (_MINIMAL, _EXTENSIONS):
+# Path Setup
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MINIMAL = os.path.join(ROOT, "src", "minimal")
+EXTENSIONS = os.path.join(ROOT, "src", "extensions")
+for path in (MINIMAL, EXTENSIONS):
     if path not in sys.path:
         sys.path.insert(0, path)
 
@@ -62,15 +64,34 @@ def main():
     params = [(3, 2), (5, 3), (6, 3), (7, 4)]
 
     print(f"Message: {message!r}\n")
-    print("| Scheme | n | k | subsets | key generation time (s) | signing time (s) | verify time (s) | signature size (bytes) |")
-    print("|--------|---|---|---------|-------------------------|------------------|-----------------|------------------------|")
+
+    headers = [
+        "Scheme",
+        "n",
+        "k",
+        "Subsets",
+        "Keygen (s)",
+        "Sign (s)",
+        "Verify (s)",
+        "Sig Size (bytes)",
+    ]
+    table = []
+
     for ots in schemes:
         for n, k in params:
             t_kg, t_sg, t_vf, sz, ns = bench_once(ots, n, k, message)
-            print(
-                f"| {ots.name} | {n} | {k} | {ns} | "
-                f"{t_kg:.4f} | {t_sg:.4f} | {t_vf:.4f} | {sz} |"
-            )
+            table.append([
+                ots.name,
+                n,
+                k,
+                ns,
+                f"{t_kg:.6f}",
+                f"{t_sg:.6f}",
+                f"{t_vf:.6f}",
+                sz,
+            ])
+
+    print(tabulate(table, headers=headers, tablefmt="fancy_outline"))
 
 
 if __name__ == "__main__":

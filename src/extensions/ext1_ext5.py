@@ -4,10 +4,13 @@ import os
 import sys
 import time
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_MINIMAL = os.path.join(os.path.dirname(_HERE), "minimal")
-if _MINIMAL not in sys.path:
-    sys.path.insert(0, _MINIMAL)
+# Path Setup
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MINIMAL = os.path.join(ROOT, "minimal")
+EXTENSIONS = os.path.join(ROOT, "extensions")
+for path in (MINIMAL, EXTENSIONS):
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 from kofn import kofn_keygen, kofn_sign, kofn_verify
 from ots import WinternitzOTS
@@ -27,7 +30,7 @@ def main():
 
     msg = input("Message to sign: ").strip()
     if not msg:
-        msg = "hello world I am in pain xdddddddddd"
+        msg = "hello world  I am in pain xdddddddddd"
 
     selected = [0, 2, 4]
     start = time.time()
