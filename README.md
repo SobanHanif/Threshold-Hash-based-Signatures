@@ -22,8 +22,8 @@ project) and a set of **extensions** built on top of the same primitives.
 | Coordinator / Party n-of-n signing | Minimal | `src/minimal/coordinator.py`, `src/minimal/party.py` |
 | k-of-n over k-of-k subtrees with a Merkle root | Extension 1 | `src/extensions/kofn.py` |
 | Peer-to-peer signing (no fixed aggregator) | Extension 2 | `src/extensions/p2p.py` |
-| Merkle tree over multiple Lamport leaves | Extension 3 | have to add |
-| Merkle trees within higher layers of the tree whilst leaving leaves as Lamport nodes | Extension 4 | have to add |
+| Merkle batching layer over multiple messages / Lamport keys | Extension 3 | `src/extensions/ext3.py` |
+| HyperTree construction with Merkle subtrees across layers | Extension 4 | `src/extensions/ext4.py` |
 | Winternitz OTS drop-in for the k-of-n machinery | Extension 5 | `src/extensions/winternitz.py`, `src/extensions/ots.py` |
 
 
@@ -35,7 +35,9 @@ Proj/
 ├── requirements.txt
 ├── src/
 │   ├── minimal/                # spec's minimal n-of-n project
-│   │   ├── lamport.py          # Lamport OTS + Merkle-Lamport helpers
+│   │   ├── lamport_ots.py      # Core Lamport sign / verify logic
+│   │   ├── merkle.py           # Shared Merkle helpers
+│   │   ├── lamport.py          # Lamport keygen + Merkle-Lamport flow
 │   │   ├── threshold.py        # XOR split / reconstruct / combine
 │   │   ├── party.py            # Party that holds one share
 │   │   ├── coordinator.py      # Aggregator that drives the signing round
@@ -45,7 +47,11 @@ Proj/
 │       ├── winternitz.py       # Winternitz OTS implementation
 │       ├── kofn.py             # k-of-n scheme (subset enumeration + Merkle root)
 │       ├── p2p.py              # Peer-to-peer signing rounds
-│       └── ext1_ext5.py        # Runnable demo for Ext 1 + Ext 5
+│       ├── ext3.py             # Merkle batching layer
+│       ├── ext4.py             # HyperTree implementation
+│       ├── prf_shares.py       # PRF-share variant for the full-project model
+│       ├── ext1_ext5.py        # Runnable demo for Ext 1 + Ext 5
+│       └── ext_full_prf.py     # Runnable demo for the PRF-share variant
 ├── benchmarks/
 │   ├── bench_kofn_wots.py      # Lamport vs Winternitz across (n, k, w)
 │   └── bench_p2p.py            # Coordinator vs P2P overhead / delay / failure modes
@@ -69,6 +75,9 @@ python3 src/minimal/main.py
 
 # extension demo (k-of-n with Winternitz)
 python3 src/extensions/ext1_ext5.py
+
+# PRF-share demo
+python3 src/extensions/ext_full_prf.py
 
 # run every test
 python3 -m unittest discover -s tests -t .
@@ -94,6 +103,9 @@ from the project root.
 | `tests/extensions/test_threshold_kofn.py` | k-of-n across every OTS scheme, subset rejection, reuse guard, bad auth paths |
 | `tests/extensions/test_scheme_switch.py` | Same harness runs over Lamport and WOTS without any protocol changes |
 | `tests/extensions/test_p2p.py` | 100-party P2P n-of-n round, unavailable parties, tampered messages, different initiators |
+| `tests/extensions/test_ext3.py` | Batch handler Merkle proofs, tamper detection, multiple completed batches |
+| `tests/extensions/test_ext4.py` | HyperTree round-trip for Lamport / Winternitz and subtree regeneration |
+| `tests/extensions/test_prf_shares.py` | PRF-share reconstruction, Merkle round-trip, tamper detection, leaf reuse |
 
 ## Benchmarks
 
