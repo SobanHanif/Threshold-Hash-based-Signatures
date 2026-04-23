@@ -51,7 +51,11 @@ def get_lengths(w, hash_bits=256):
 
 # Hash message, convert to digits, then add checksum digits
 def message_to_digits(message, w):
-    msg_hash = hashlib.sha256(message.encode()).digest()
+    if isinstance(message, bytes):
+        msg_bytes = message
+    else:
+        msg_bytes = message.encode()
+    msg_hash = hashlib.sha256(msg_bytes).digest()
 
     l1, l2, _ = get_lengths(w)
 

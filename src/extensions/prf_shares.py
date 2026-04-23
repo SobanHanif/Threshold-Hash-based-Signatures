@@ -60,7 +60,6 @@ def merkle_keygen_prf(
             if not isinstance(prf_key, bytes) or len(prf_key) != PRF_KEY_SIZE:
                 raise ValueError(f"party {party_id} must have a 32-byte PRF key")
 
-    leaf_secret_keys = []
     leaf_public_keys = []
     party_shares = {party_id: [] for party_id in range(n_parties)}
 
@@ -89,7 +88,6 @@ def merkle_keygen_prf(
             server_right = make_server_share(right, derived_right)
             shares_for_leaf[server_party_id].append([server_left, server_right])
 
-        leaf_secret_keys.append(sk)
         leaf_public_keys.append(pk)
         for party_id in range(n_parties):
             party_shares[party_id].append(shares_for_leaf[party_id])
@@ -104,7 +102,6 @@ def merkle_keygen_prf(
         "n_leaves": n_leaves,
         "server_party_id": server_party_id,
         "party_prf_keys": party_prf_keys,
-        "leaf_secret_keys": leaf_secret_keys,
         "root": root,
         "tree": tree,
         "leaf_public_keys": leaf_public_keys,

@@ -45,7 +45,7 @@ def merkle_auth_path(levels, index):
     return path
 
 
-def verify_merkle(leaf, index, path, root):
+def merkle_root_from_path(leaf, index, path):
     cur = leaf
     idx = index
     for sibling in path:
@@ -54,4 +54,8 @@ def verify_merkle(leaf, index, path, root):
         else:
             cur = hashlib.sha256(sibling + cur).digest()
         idx //= 2
-    return cur == root
+    return cur
+
+
+def verify_merkle(leaf, index, path, root):
+    return merkle_root_from_path(leaf, index, path) == root

@@ -3,7 +3,6 @@ Peer-to-Peer signing protocol for Extension 2
 
 It essentially replaces the dedicated coordinator/aggregator with a model where any party
 can temporarily assume the aggregator role for a single signing round.
-All grievance reports to Wayne
 """
 
 import time
@@ -84,6 +83,6 @@ class P2PNetwork:
         self.rounds.append(signing_round)
         return result
 
-    # Verification using the network pbulic key
+    # Verification using the network public key
     def verify(self, message, signature):
         return lamport.verify(message, signature, self.public_key)

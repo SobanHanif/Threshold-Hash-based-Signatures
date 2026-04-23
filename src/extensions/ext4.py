@@ -2,7 +2,6 @@
 Extension 4: hypertrees.
 """
 
-import hashlib
 from typing import Callable
 
 import merkle
@@ -115,21 +114,9 @@ def verify_hyper(signature: dict, cpk: bytes, verify_fn: Callable, hash_fn: Call
             return False
 
         leaf = hash_fn(signature["pks"][depth])
-        root = merkle_walk(
+        root = merkle.merkle_root_from_path(
             leaf, signature["key_indices"][depth], signature["auth_paths"][depth]
         )
         current_msg = root
 
     return current_msg == cpk
-
-
-def merkle_walk(leaf, index, path):
-    cur = leaf
-    idx = index
-    for sibling in path:
-        if idx % 2 == 0:
-            cur = hashlib.sha256(cur + sibling).digest()
-        else:
-            cur = hashlib.sha256(sibling + cur).digest()
-        idx //= 2
-    return cur

@@ -1,6 +1,7 @@
 import unittest
 
 from tests import _path
+import hashlib
 import lamport
 from prf_shares import (
     derive_share,
@@ -13,7 +14,12 @@ class TestPrfShares(unittest.TestCase):
     def test_reconstruction_matches_original_secret_key(self):
         state = merkle_keygen_prf(4, 2)
         reconstructed = reconstruct_leaf_secret(state, 0)
-        self.assertEqual(reconstructed, state["leaf_secret_keys"][0])
+        rebuilt_public_key = []
+        for left, right in reconstructed:
+            rebuilt_public_key.append(
+                [hashlib.sha256(left).digest(), hashlib.sha256(right).digest()]
+            )
+        self.assertEqual(rebuilt_public_key, state["leaf_public_keys"][0])
 
     def test_merkle_round_trip(self):
         state = merkle_keygen_prf(4, 3)

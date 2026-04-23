@@ -13,12 +13,6 @@ def lamport_hash_pk(pk):
     return hashlib.sha256(b"".join(parts)).digest()
 
 
-def to_wots_message(message):
-    if isinstance(message, bytes):
-        return message.hex()
-    return message
-
-
 class TestExt4HyperTree(unittest.TestCase):
     def test_hypertree_lamport(self):
         ht = ext4.HyperTree(
@@ -37,8 +31,8 @@ class TestExt4HyperTree(unittest.TestCase):
         w = 16
         ht = ext4.HyperTree(
             keygen_fn=lambda: winternitz.generate_keys(w),
-            sign_fn=lambda sk, msg: winternitz.sign(to_wots_message(msg), sk, w),
-            verify_fn=lambda sig, pk, msg: winternitz.verify(to_wots_message(msg), sig, pk, w),
+            sign_fn=lambda sk, msg: winternitz.sign(msg, sk, w),
+            verify_fn=lambda sig, pk, msg: winternitz.verify(msg, sig, pk, w),
             hash_fn=merkle.leaf_hash,
             subtree_size=2,
             num_layers=2,
@@ -51,8 +45,8 @@ class TestExt4HyperTree(unittest.TestCase):
         w = 16
         ht = ext4.HyperTree(
             keygen_fn=lambda: winternitz.generate_keys(w),
-            sign_fn=lambda sk, msg: winternitz.sign(to_wots_message(msg), sk, w),
-            verify_fn=lambda sig, pk, msg: winternitz.verify(to_wots_message(msg), sig, pk, w),
+            sign_fn=lambda sk, msg: winternitz.sign(msg, sk, w),
+            verify_fn=lambda sig, pk, msg: winternitz.verify(msg, sig, pk, w),
             hash_fn=merkle.leaf_hash,
             subtree_size=2,
             num_layers=2,

@@ -30,7 +30,7 @@ def main():
 
     msg = input("Message to sign: ").strip()
     if not msg:
-        msg = "hello world I am in pain xdddddddddd"
+        msg = "hello world  I am in pain xdddddddddd"
 
     selected = [0, 2, 4]
     start = time.time()
