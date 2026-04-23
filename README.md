@@ -32,6 +32,7 @@ project) and a set of **extensions** built on top of the same primitives.
 ```
 Proj/
 ├── README.md
+├── requirements.txt
 ├── src/
 │   ├── minimal/                # spec's minimal n-of-n project
 │   │   ├── lamport.py          # Lamport OTS + Merkle-Lamport helpers
@@ -56,10 +57,13 @@ Proj/
 
 ## Quick start
 
-Python 3.9+, no third-party dependencies. Everything here just uses the
-standard libraries (`hashlib`, `secrets`, `itertools`, `unittest`).
+Python 3.9+. The core implementation uses the standard library, and the
+benchmark scripts use the small extra dependency listed in `requirements.txt`.
 
 ```bash
+# install benchmark dependency
+pip install -r requirements.txt
+
 # minimal demo (Lamport n-of-n + Merkle-Lamport)
 python3 src/minimal/main.py
 

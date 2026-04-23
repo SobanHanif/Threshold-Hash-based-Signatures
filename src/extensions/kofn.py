@@ -1,7 +1,7 @@
-import hashlib
 import math
 from itertools import combinations
 
+from merkle import build_merkle, merkle_auth_path, verify_merkle
 from threshold import split_secret_key, xor_bytes
 
 
@@ -29,45 +29,6 @@ def ots_combine_signature(sig_shares, message, ots):
     return ots.sign(message, ots.unflatten_sk(reconstructed_flat))
 
 
-# binary merkle tree with odd nodes duplicating the last sibling.
-def _build_merkle(leaves):
-    levels = [list(leaves)]
-    while len(levels[-1]) > 1:
-        prev = levels[-1]
-        cur = []
-        for i in range(0, len(prev), 2):
-            left = prev[i]
-            right = prev[i + 1] if i + 1 < len(prev) else prev[i]
-            cur.append(hashlib.sha256(left + right).digest())
-        levels.append(cur)
-    return levels
-
-
-def _merkle_auth_path(levels, index):
-    path = []
-    idx = index
-    for level in levels[:-1]:
-        if idx % 2 == 0:
-            sibling_idx = idx + 1 if idx + 1 < len(level) else idx
-        else:
-            sibling_idx = idx - 1
-        path.append(level[sibling_idx])
-        idx //= 2
-    return path
-
-
-def _verify_merkle(leaf, index, path, root):
-    cur = leaf
-    idx = index
-    for sibling in path:
-        if idx % 2 == 0:
-            cur = hashlib.sha256(cur + sibling).digest()
-        else:
-            cur = hashlib.sha256(sibling + cur).digest()
-        idx //= 2
-    return cur == root
-
-
 def kofn_keygen(n, k, ots):
     # k subsets into lexgraphic order
     subsets = list(combinations(range(n), k))
@@ -82,7 +43,7 @@ def kofn_keygen(n, k, ots):
         subset_shares.append(shares)
 
     leaves = [ots.leaf_hash(pk) for pk in subset_pks]
-    tree = _build_merkle(leaves)
+    tree = build_merkle(leaves)
     root = tree[-1][0]
 
     # party_shares[party_id][subset_idx] = selected partys share for selected subset
@@ -135,7 +96,7 @@ def kofn_sign(selected_parties, message, state):
         sig_shares.append(share)
 
     ots_sig = ots_combine_signature(sig_shares, message, ots)
-    auth_path = _merkle_auth_path(state["tree"], s_idx)
+    auth_path = merkle_auth_path(state["tree"], s_idx)
     state["used_subsets"].add(s_idx)
 
     return {
@@ -159,4 +120,4 @@ def kofn_verify(message, sig, root, n, k, ots):
         return False
 
     leaf = ots.leaf_hash(sig["subset_pk"])
-    return _verify_merkle(leaf, s_idx, sig["auth_path"], root)
+    return verify_merkle(leaf, s_idx, sig["auth_path"], root)

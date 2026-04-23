@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 
+from merkle import build_merkle, leaf_hash, merkle_auth_path, verify_merkle
 import threshold
 
 
@@ -68,53 +69,6 @@ def verify(message, signature, public_key):
     return True
 
 
-def _leaf_hash(public_key):
-    # Flatten the Lamport public key into one hash for the Merkle leaf
-    parts = []
-    for pair in public_key:
-        parts.append(pair[0])
-        parts.append(pair[1])
-    return hashlib.sha256(b"".join(parts)).digest()
-
-
-def _build_merkle(leaves):
-    levels = [list(leaves)]
-    while len(levels[-1]) > 1:
-        prev = levels[-1]
-        cur = []
-        for i in range(0, len(prev), 2):
-            left = prev[i]
-            right = prev[i + 1] if i + 1 < len(prev) else prev[i]
-            cur.append(hashlib.sha256(left + right).digest())
-        levels.append(cur)
-    return levels
-
-
-def _merkle_auth_path(levels, index):
-    path = []
-    idx = index
-    for level in levels[:-1]:
-        if idx % 2 == 0:
-            sibling_idx = idx + 1 if idx + 1 < len(level) else idx
-        else:
-            sibling_idx = idx - 1
-        path.append(level[sibling_idx])
-        idx //= 2
-    return path
-
-
-def _verify_merkle(leaf, index, path, root):
-    cur = leaf
-    idx = index
-    for sibling in path:
-        if idx % 2 == 0:
-            cur = hashlib.sha256(cur + sibling).digest()
-        else:
-            cur = hashlib.sha256(sibling + cur).digest()
-        idx //= 2
-    return cur == root
-
-
 def merkle_keygen(n_parties, n_leaves):
     if n_parties < 1:
         raise ValueError("n_parties must be at least 1")
@@ -133,8 +87,8 @@ def merkle_keygen(n_parties, n_leaves):
         for party_id in range(n_parties):
             party_shares[party_id].append(shares[party_id])
 
-    leaves = [_leaf_hash(pk) for pk in leaf_pks]
-    tree = _build_merkle(leaves)
+    leaves = [leaf_hash(pk) for pk in leaf_pks]
+    tree = build_merkle(leaves)
     root = tree[-1][0]
 
     return {
@@ -167,7 +121,7 @@ def merkle_sign(message, leaf_idx, state):
 
     coordinator = Coordinator(leaf_pk, parties)
     signature = coordinator.sign(message)
-    auth_path = _merkle_auth_path(state["tree"], leaf_idx)
+    auth_path = merkle_auth_path(state["tree"], leaf_idx)
     state["used_leaves"].add(leaf_idx)
 
     return {
@@ -184,5 +138,5 @@ def merkle_verify(message, sig, root):
         return False
 
     # Then verify the Merkle path for that leaf
-    leaf = _leaf_hash(sig["leaf_pk"])
-    return _verify_merkle(leaf, sig["leaf_idx"], sig["auth_path"], root)
+    leaf = leaf_hash(sig["leaf_pk"])
+    return verify_merkle(leaf, sig["leaf_idx"], sig["auth_path"], root)
