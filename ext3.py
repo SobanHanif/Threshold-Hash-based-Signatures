@@ -28,6 +28,7 @@ class BatchHandler:
     
     self.batch_size = batch_size
     self.outer_levels = outer_tree_levels
+    self.outer_root = outer_tree_levels[-1][0]
     self.pks = pks
     self.signature_fn = signature_fn
 

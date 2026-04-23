@@ -3,7 +3,10 @@ import secrets
 
 def leaf_hash(wots_pk):
   # wots_pk is a list of 32 byte hash chain final values
-  return hashlib.sha256(b"".join(wots_pk)).digest()
+  # im cheating
+  if isinstance(wots_pk, list):
+    return hashlib.sha256("".join(wots_pk)).digest()
+  return hashlib.sha256(wots_pk).digest()
 
 def build_merkle(leaves):
   # binary merkle tree w/ odd nodes duplicating the last sibling
