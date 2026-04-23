@@ -54,7 +54,14 @@ class WinternitzOTS:
         return list(flat)
 
     def leaf_hash(self, pk):
-        return hashlib.sha256(b"".join(pk)).digest()
+        # old version:
+        # return hashlib.sha256(b"".join(pk)).digest()
+        #
+        # optimisation 2: hash incrementally instead of joining all chains first
+        h = hashlib.sha256()
+        for part in pk:
+            h.update(part)
+        return h.digest()
 
     def share_element_size(self):
         return 32
@@ -91,11 +98,19 @@ class LamportOTS:
 
     def leaf_hash(self, pk):
         # for reference -> pk is list of [h0, h1] pairs
-        parts = []
+        # old version:
+        # parts = []
+        # for pair in pk:
+        #     parts.append(pair[0])
+        #     parts.append(pair[1])
+        # return hashlib.sha256(b"".join(parts)).digest()
+        #
+        # optimisation 2: hash incrementally instead of building a temporary bytes object
+        h = hashlib.sha256()
         for pair in pk:
-            parts.append(pair[0])
-            parts.append(pair[1])
-        return hashlib.sha256(b"".join(parts)).digest()
+            h.update(pair[0])
+            h.update(pair[1])
+        return h.digest()
 
     def share_element_size(self):
         return 32

@@ -5,14 +5,25 @@ def leaf_hash(value):
     if isinstance(value, bytes):
         data = value
     elif isinstance(value, list):
-        parts = []
+        # old version:
+        # parts = []
+        # for item in value:
+        #     if isinstance(item, (list, tuple)) and len(item) == 2:
+        #         parts.append(item[0])
+        #         parts.append(item[1])
+        #     else:
+        #         parts.append(item)
+        # data = b"".join(parts)
+        #
+        # optimisation 2: hash incrementally instead of building one big bytes object
+        hasher = hashlib.sha256()
         for item in value:
             if isinstance(item, (list, tuple)) and len(item) == 2:
-                parts.append(item[0])
-                parts.append(item[1])
+                hasher.update(item[0])
+                hasher.update(item[1])
             else:
-                parts.append(item)
-        data = b"".join(parts)
+                hasher.update(item)
+        return hasher.digest()
     else:
         raise TypeError("unsupported public key type for leaf_hash")
 

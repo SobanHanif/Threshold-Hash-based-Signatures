@@ -2,6 +2,8 @@ import hashlib
 import secrets
 import math
 
+_LENGTH_CACHE = {}
+
 
 # Hash a value n times with SHA-256
 def hash_n_times(value, n):
@@ -42,11 +44,24 @@ def int_to_base_w(x, w, length):
 
 # Work out how many chains we need
 def get_lengths(w, hash_bits=256):
+    # old version:
+    # bits_per_digit = math.log2(w)
+    # l1 = math.ceil(hash_bits / bits_per_digit)
+    # l2 = math.floor(math.log(l1 * (w - 1), w)) + 1
+    # l = l1 + l2
+    # return l1, l2, l
+    #
+    # optimisation 3: cache the layout for repeated use with the same (w, hash_bits)
+    cache_key = (w, hash_bits)
+    if cache_key in _LENGTH_CACHE:
+        return _LENGTH_CACHE[cache_key]
+
     bits_per_digit = math.log2(w)
     l1 = math.ceil(hash_bits / bits_per_digit)
     l2 = math.floor(math.log(l1 * (w - 1), w)) + 1
     l = l1 + l2
-    return l1, l2, l
+    _LENGTH_CACHE[cache_key] = (l1, l2, l)
+    return _LENGTH_CACHE[cache_key]
 
 
 # Hash message, convert to digits, then add checksum digits

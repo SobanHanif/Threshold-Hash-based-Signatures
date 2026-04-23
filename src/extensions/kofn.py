@@ -32,6 +32,8 @@ def ots_combine_signature(sig_shares, message, ots):
 def kofn_keygen(n, k, ots):
     # k subsets into lexgraphic order
     subsets = list(combinations(range(n), k))
+    # optimisation 1: precompute subset lookup so signing does O(1) lookup
+    subset_to_idx = {subset: idx for idx, subset in enumerate(subsets)}
 
     subset_pks = []
     subset_shares = []  # subset_shares[s][pos] = share held by subset[s][pos]
@@ -59,6 +61,7 @@ def kofn_keygen(n, k, ots):
         "root": root,
         "tree": tree,
         "subsets": subsets,
+        "subset_to_idx": subset_to_idx,
         "subset_pks": subset_pks,
         "party_shares": party_shares,
         # each enumerated subset holds exactly one ots keypair -> can only sign one message as reusing it leaks sk
@@ -79,8 +82,11 @@ def kofn_sign(selected_parties, message, state):
             raise ValueError(f"party id {p} out of range [0,{n})")
 
     try:
-        s_idx = state["subsets"].index(subset_tuple)
-    except ValueError:
+        # old version:
+        # s_idx = state["subsets"].index(subset_tuple)
+        # optimisation 1:
+        s_idx = state["subset_to_idx"][subset_tuple]
+    except KeyError:
         raise ValueError(f"subset {subset_tuple} not in enumeration")
 
     if s_idx in state["used_subsets"]:
