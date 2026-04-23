@@ -15,14 +15,25 @@ def run_minimal_protocol(message, n_parties=5, n_leaves=4):
     start = time.time()
     sig = lamport.merkle_sign(message, leaf_idx, state)
     print(
-        f"Signing with standard coordinator flow on leaf {leaf_idx}: "
+        f"Signing on leaf {leaf_idx}: "
         f"{time.time() - start:.4f}s"
     )
 
     start = time.time()
     ok = lamport.merkle_verify(message, sig, state["root"])
-    print(f"Verification against Merkle root: {time.time() - start:.4f}s")
-    print(f"Minimal protocol valid: {ok}")
+    print(f"Verification: {time.time() - start:.4f}s")
+    print("verify(signed message):", ok)
+
+    print(
+        "verify(tampered message):",
+        lamport.merkle_verify(message + "!", sig, state["root"]),
+    )
+
+    try:
+        lamport.merkle_sign(message, leaf_idx, state)
+        print("error: reuse should have been rejected")
+    except RuntimeError as e:
+        print(f"reuse rejected: {e}")
 
 
 def main():
@@ -30,7 +41,6 @@ def main():
     if not msg:
         msg = "hello world"
 
-    print("\n== Minimal Protocol: Standard Flow + Lamport Tree ==")
     run_minimal_protocol(msg)
 
 
