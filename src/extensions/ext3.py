@@ -35,6 +35,12 @@ class BatchHandler:
         if len(self.buffer) == self.batch_size:
             self._reset_buffer()
 
+    # accounting for the edge case of flushing required before fulfillment
+    def premature_reset(self):
+        if len(self.buffer) == 0: return
+        self._reset_buffer()
+
+
     def _reset_buffer(self):
         if self.current_key_id >= len(self.pks):
             raise RuntimeError("all keypairs exhausted!")
