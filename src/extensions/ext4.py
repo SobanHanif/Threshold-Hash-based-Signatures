@@ -5,7 +5,6 @@ Extension 4: hypertrees.
 from typing import Callable
 import merkle
 
-
 def _to_bytes(message):
     if isinstance(message, bytes):
         return message
@@ -79,7 +78,6 @@ class HyperTree:
         self._link_indices = [None] * (num_layers - 1)
 
     def sign(self, message) -> dict:
-        # Safety net applied here
         safe_message = _to_bytes(message)
 
         for d in range(self._num_layers - 2, -1, -1):
