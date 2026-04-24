@@ -35,12 +35,12 @@ class TestBatchHandler(unittest.TestCase):
 
         self.assertGreater(len(handler.completed_batches), 0)
         self.assertEqual(
-            [m.decode() for m in handler.completed_batches[0][b"messages"]],
-            [b"apple", b"banana"],
+            [m.decode() for m in handler.completed_batches[0]["messages"]],
+            ["apple", "banana"],
         )
 
         proof = handler.get_proof(batch_index=0, message_index=1)
-        self.assertEqual(proof["message"], "banana")
+        self.assertEqual(proof["message"].decode(), "banana")
         self.assertTrue(handler.batch_verify(proof, handler.outer_root, mock_verify_fn))
 
     def test_tampered_message_fails(self):
@@ -109,7 +109,7 @@ class TestBatchHandler(unittest.TestCase):
         handler.addMessage("b")
 
         proof = handler.get_proof(0, 0)
-        proof["inner_path"][0] = "fake_hash"
+        proof["inner_path"][0] = b"fake_hash"
         self.assertFalse(handler.batch_verify(proof, handler.outer_root, mock_verify_fn))
 
     def test_outer_root_stability(self):
@@ -126,13 +126,14 @@ class TestBatchHandler(unittest.TestCase):
         self.assertEqual(len(handler.completed_batches), 2)
 
         proof_batch_0 = handler.get_proof(batch_index=0, message_index=9)
-        self.assertEqual(proof_batch_0["message"], "msg_9")
+        # bruh need to add bytes now
+        self.assertEqual(proof_batch_0["message"], b"msg_9")
         self.assertTrue(
             handler.batch_verify(proof_batch_0, handler.outer_root, mock_verify_fn)
         )
 
         proof_batch_1 = handler.get_proof(batch_index=1, message_index=0)
-        self.assertEqual(proof_batch_1["message"], "msg_10")
+        self.assertEqual(proof_batch_1["message"], b"msg_10")
         self.assertTrue(
             handler.batch_verify(proof_batch_1, handler.outer_root, mock_verify_fn)
         )
