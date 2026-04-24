@@ -4,8 +4,15 @@ and an outer Merkle tree over public keys.
 """
 
 import hashlib
-
 import merkle
+
+
+def _to_bytes(message):
+    if isinstance(message, bytes):
+        return message
+    if isinstance(message, str):
+        return message.encode()
+    raise TypeError("message must be str or bytes")
 
 
 class BatchHandler:
@@ -27,6 +34,12 @@ class BatchHandler:
         self.buffer.append(message)
         if len(self.buffer) == self.batch_size:
             self._reset_buffer()
+
+    # accounting for the edge case of flushing required before fulfillment
+    def premature_reset(self):
+        if len(self.buffer) == 0: return
+        self._reset_buffer()
+
 
     def _reset_buffer(self):
         if self.current_key_id >= len(self.pks):
@@ -69,7 +82,8 @@ class BatchHandler:
         }
 
     def _build_inner_tree(self, messages: list):
-        leaves = [hashlib.sha256(message).digest() for message in messages]
+        # Safety net applied here
+        leaves = [hashlib.sha256(_to_bytes(message)).digest() for message in messages]
         levels = merkle.build_merkle(leaves)
         root = levels[-1][0]
         return levels, root
@@ -84,7 +98,8 @@ class BatchHandler:
         pk = proof["pk"]
         outer_path = proof["outer_path"]
 
-        inner_leaf = hashlib.sha256(message).digest()
+        inner_leaf = hashlib.sha256(_to_bytes(message)).digest()
+        
         if not merkle.verify_merkle(inner_leaf, message_index, inner_path, inner_root):
             return False
 

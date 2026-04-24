@@ -3,8 +3,14 @@ Extension 4: hypertrees.
 """
 
 from typing import Callable
-
 import merkle
+
+def _to_bytes(message):
+    if isinstance(message, bytes):
+        return message
+    if isinstance(message, str):
+        return message.encode()
+    raise TypeError("message must be str or bytes")
 
 
 class SubTree:
@@ -71,7 +77,9 @@ class HyperTree:
         self._link_paths = [None] * (num_layers - 1)
         self._link_indices = [None] * (num_layers - 1)
 
-    def sign(self, message: bytes) -> dict:
+    def sign(self, message) -> dict:
+        safe_message = _to_bytes(message)
+
         for d in range(self._num_layers - 2, -1, -1):
             if self._layers[d] is None or self._layers[d].exhausted():
                 self._layers[d] = SubTree(
@@ -90,10 +98,10 @@ class HyperTree:
                 self._link_pks[d] = pk
                 self._link_paths[d] = path
 
-        idx_0, sig_0, pk_0, path_0 = self._layers[0].sign(message)
+        idx_0, sig_0, pk_0, path_0 = self._layers[0].sign(safe_message)
 
         return {
-            "message": message,
+            "message": safe_message,  # Stored as safe bytes
             "sigs": [sig_0] + self._link_sigs,
             "pks": [pk_0] + self._link_pks,
             "key_indices": [idx_0] + self._link_indices,
@@ -105,7 +113,7 @@ class HyperTree:
 
 
 def verify_hyper(signature: dict, cpk: bytes, verify_fn: Callable, hash_fn: Callable):
-    current_msg = signature["message"]
+    current_msg = _to_bytes(signature["message"])
 
     for depth in range(len(signature["sigs"])):
         if not verify_fn(
