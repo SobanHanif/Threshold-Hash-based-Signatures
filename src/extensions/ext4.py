@@ -71,7 +71,7 @@ class HyperTree:
         self._link_paths = [None] * (num_layers - 1)
         self._link_indices = [None] * (num_layers - 1)
 
-    def sign(self, message: bytes) -> dict:
+    def sign(self, message) -> dict:
         for d in range(self._num_layers - 2, -1, -1):
             if self._layers[d] is None or self._layers[d].exhausted():
                 self._layers[d] = SubTree(
