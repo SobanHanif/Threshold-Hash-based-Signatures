@@ -4,7 +4,7 @@ import unittest
 from tests import _path
 from ext3 import BatchHandler
 
-
+# lazy
 N_PKS = 5
 PKS = [hashlib.sha256(f"pk_{i}".encode()).digest() for i in range(N_PKS)]
 
